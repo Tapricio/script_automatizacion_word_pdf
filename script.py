@@ -9,7 +9,7 @@ import win32com.client
 
 # Obtener la fecha actual en formato DD-MM-YYYY
 fecha_hoy = datetime.today().strftime('%d-%m-%Y')
-idTemplate = 1001
+idTemplate = 10001
 
 # Crear las carpetas necesarias sin sobrescribir
 base_folder_name = rf"G:\Unidades compartidas\Salud\Cartas devolución jubilados\{fecha_hoy} carta devolución jubilados"
@@ -42,8 +42,8 @@ rutInvalidos = []
 edadInvalidas = []
 casosInvalidos = []
 idInvalidos = []
-desdentadoSiNombreDocx = "plantilla0.docx"
-desdentadoNoNombreDocx = "plantilla9990.docx"
+desdentadoSiNombreDocx = "plantillaSinCosto.docx"
+desdentadoNoNombreDocx = "plantillaConCosto.docx"
 
 val = 0
 
@@ -222,4 +222,15 @@ for filename in os.listdir(word_folder):
 # Cerrar Word
 word.Quit()
 
+
 print(f"\n✅ Archivos PDF guardados en: {os.path.abspath(pdf_folder)}")
+
+uc_informatica = rf"G:\Unidades compartidas\Informática\Template cartas devolución jubilados\correlativo.txt"
+
+with open(uc_informatica, "w", encoding="utf-8") as archivo:
+    archivo.write(str(idTemplate))
+
+print(f"✅ Archivo creado: {uc_informatica}")
+
+
+
