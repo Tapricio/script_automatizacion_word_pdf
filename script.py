@@ -4,16 +4,15 @@ import pandas as pd
 from datetime import datetime
 from tkinter import Tk, filedialog
 from docx import Document
+import win32com.client
 
-pd.set_option('display.max_columns', None)
-pd.set_option('display.max_rows', None)
-pd.set_option('display.max_colwidth', None)
 
 # Obtener la fecha actual en formato DD-MM-YYYY
 fecha_hoy = datetime.today().strftime('%d-%m-%Y')
+idTemplate = 1001
 
 # Crear las carpetas necesarias sin sobrescribir
-base_folder_name = f"{fecha_hoy} carta devolución jubilados"
+base_folder_name = rf"G:\Unidades compartidas\Salud\Cartas devolución jubilados\{fecha_hoy} carta devolución jubilados"
 base_folder = base_folder_name
 counter = 1
 while os.path.exists(base_folder):
@@ -31,18 +30,20 @@ root = Tk()
 root.withdraw()
 
 # Selección de archivo (descomentar para usar ventana de diálogo)
-"""
+
 file_path = filedialog.askopenfilename(
     title="Selecciona un archivo Excel",
     filetypes=[("Excel files", "*.xlsx *.xls")]
 )
-"""
-file_path = 'Seguimiento Fundación Reconocer (1).xlsx'
 
 fechasInvalidas = []
 fechasValidas = []
 rutInvalidos = []
 edadInvalidas = []
+casosInvalidos = []
+idInvalidos = []
+desdentadoSiNombreDocx = "plantilla0.docx"
+desdentadoNoNombreDocx = "plantilla9990.docx"
 
 val = 0
 
@@ -111,7 +112,7 @@ if file_path:
                     rut = rut.upper()
 
                     try:
-                        fechaFormateada = fechaNacimiento.strftime('%d/%m/%Y')
+                        fechaFormateada = fechaNacimiento.strftime('%d-%m-%Y')
                     except Exception:
                         fechasInvalidas.append(index)
                         continue
@@ -125,24 +126,45 @@ if file_path:
                         edadInvalidas.append(index)
                         continue
 
-                    print(f"Paciente: {nombre}, Rut: {rut}, Fecha de Nacimiento: {fechaFormateada}, Edad: {edad}")
+                    print(f"Paciente: {nombre}, Rut: {rut}, Fecha de Nacimiento: {fechaFormateada}, Edad: {str(edad)}, ID: {str(idTemplate)}")
                     val += 1
                     fechasValidas.append(index)
                     
-                     # Abrir plantilla y reemplazar
-                    doc = Document("plantilla.docx")
-                    docx_replace_regex(doc, re.compile(r"NombreTemplate"), nombre)
-                    docx_replace_regex(doc, re.compile(r"FechaDeEmicionTemplate"), fecha_hoy)
-                    docx_replace_regex(doc, re.compile(r"RutTemplate"), rut)
-                    docx_replace_regex(doc, re.compile(r"IdTemplate"), "test")
-                    docx_replace_regex(doc, re.compile(r"FechaNacTemplate"), fechaFormateada)
-                    docx_replace_regex(doc, re.compile(r"EdadTemplate"), str(edad))
+                    try:
+                        desdentado = df.iloc[index,1].lower().strip().replace(" ","")
+                        if desdentado=="desdentado":
+                            #doc = Document(desdentadoSiNombreDocx)
+                            doc = Document(rf"G:\Unidades compartidas\Informática\Template cartas devolución jubilados\{desdentadoSiNombreDocx}")
+                        
+                        else:
+                            #doc = Document(desdentadoNoNombreDocx)
+                            doc = Document(rf"G:\Unidades compartidas\Informática\Template cartas devolución jubilados\{desdentadoNoNombreDocx}")
+                    except Exception:
+                        casosInvalidos.append(index)
+                        continue
+
                     
+
+                     # Abrir plantilla y reemplazar
+                    #doc = Document("plantilla.docx")
+                    docx_replace_regex(doc, re.compile(r"FechaDeEmicionTemplate"), fecha_hoy)
+                    docx_replace_regex(doc, re.compile(r"NombreTemplate"), nombre)
+                    docx_replace_regex(doc, re.compile(r"RutTemplate"), rut)
+                    docx_replace_regex(doc, re.compile(r"EdadTemplate"), str(edad))
+                    docx_replace_regex(doc, re.compile(r"FechaDeNacimientoTemplate"), fechaFormateada)
+                    docx_replace_regex(doc, re.compile(r"IdTemplate"),str(idTemplate))
+                    
+
+                    try:
+                        idTemplate+=1
+                    except Exception:
+                        idInvalidos.append(index)
+                        continue
 
 
                     # Guardar en carpeta "word"
                     nombre_archivo_seguro = limpiar_nombre_archivo(nombre)
-                    ruta_guardado = os.path.join(word_folder, f"{nombre_archivo_seguro}.docx")
+                    ruta_guardado = os.path.join(word_folder, f"{nombre_archivo_seguro} {rut}.docx")
                     doc.save(ruta_guardado)
                     
                     
@@ -162,6 +184,42 @@ if file_path:
     print("Fechas válidas:", fechasValidas)
     print("Total pacientes válidos:", val)
     print(f"\nArchivos Word generados en: {os.path.abspath(word_folder)}")
+    
 
 else:
     print("No se seleccionó ningún archivo.")
+
+
+
+
+print("\nConvirtiendo archivos Word a PDF...")
+
+#print("WORD FOLDER ORIGINAL", word_folder)
+#word_folder = r"C:\PatricioTorres\script_automatizacion_word_pdf\07-05-2025 carta devolución jubilados (2)\07-05-2025 word"
+#print("WORD FOLDER FORMATEADO", word_folder)
+#pdf_folder = r"C:\PatricioTorres\script_automatizacion_word_pdf\07-05-2025 carta devolución jubilados (2)\07-05-2025 pdf"
+
+# Crear objeto de Word
+word = win32com.client.Dispatch("Word.Application")
+word.Visible = False
+
+# Convertir todos los .docx a .pdf
+for filename in os.listdir(word_folder):
+    if filename.endswith(".docx") and not filename.startswith("~$"):  # Evitar archivos temporales
+        #docx_path = os.path.join(word_folder, filename)
+        docx_path = os.path.abspath(os.path.join(word_folder, filename))
+        pdf_name = os.path.splitext(filename)[0] + ".pdf"
+        pdf_path = os.path.abspath(os.path.join(pdf_folder, pdf_name))
+
+        try:
+            doc = word.Documents.Open(os.path.abspath(docx_path))
+            doc.SaveAs(pdf_path, FileFormat=17)  # 17 = PDF
+            doc.Close()
+            print(f"Convertido: {filename}")
+        except Exception as e:
+            print(f"Error al convertir {filename}: {e}")
+
+# Cerrar Word
+word.Quit()
+
+print(f"\n✅ Archivos PDF guardados en: {os.path.abspath(pdf_folder)}")
