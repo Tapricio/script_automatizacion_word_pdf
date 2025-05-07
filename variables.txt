@@ -1,0 +1,8 @@
+Se debe agregar al template las variables para modificar, que son:
+
+docx_replace_regex(doc, re.compile(r"NombreTemplate"), nombre)
+                    docx_replace_regex(doc, re.compile(r"FechaDeEmicionTemplate"), fecha_hoy)
+                    docx_replace_regex(doc, re.compile(r"RutTemplate"), rut)
+                    docx_replace_regex(doc, re.compile(r"IdTemplate"), "test")
+                    docx_replace_regex(doc, re.compile(r"FechaNacTemplate"), fechaFormateada)
+                    docx_replace_regex(doc, re.compile(r"EdadTemplate"), str(edad))
