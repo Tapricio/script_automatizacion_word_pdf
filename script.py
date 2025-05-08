@@ -12,7 +12,8 @@ fecha_hoy = datetime.today().strftime('%d-%m-%Y')
 idTemplate = 10001
 
 # Crear las carpetas necesarias sin sobrescribir
-base_folder_name = rf"G:\Unidades compartidas\Salud\Cartas devolución jubilados\{fecha_hoy} carta devolución jubilados"
+#base_folder_name = rf"G:\Unidades compartidas\Salud\Cartas devolución jubilados\{fecha_hoy} carta devolución jubilados"
+base_folder_name = rf"G:\Unidades compartidas\Informática\Cartas devolución jubilados\{fecha_hoy} carta devolución jubilados"
 base_folder = base_folder_name
 counter = 1
 while os.path.exists(base_folder):
