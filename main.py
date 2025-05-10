@@ -1,6 +1,7 @@
+import math
 import os, re, win32com.client, config, utils
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from tkinter import Tk, filedialog
 from docx import Document
 
@@ -31,17 +32,30 @@ if archivo_excel :
         columnas_validadas = True
 
 
-
+correctas = []
+incorrectas = []
 if columnas_validadas:
-    print("before: ",type(df.loc[0,"fecha_de_nacimiento"]))
-    df["fecha_de_nacimiento"] = pd.to_datetime(df["fecha_de_nacimiento"], errors='coerce')
-    #df["fecha_de_nacimiento"] = df["fecha_de_nacimiento"].dt.strftime('%d-%m-%Y')       
+    #print("before: ",type(df.loc[0,"fecha_de_nacimiento"]))
+    data = df.to_dict(orient="records")
+    for paciente in data:
+        if pd.notna(utils.convertir_fecha(paciente["fecha_de_nacimiento"])):
+           correctas.append(paciente["fecha_de_nacimiento"])
+        else:
+            print("fecha incorrecta: ",utils.convertir_fecha(paciente["fecha_de_nacimiento"]))
+            incorrectas.append(paciente["fecha_de_nacimiento"])
+
+
+
+"""  #df["fecha_de_nacimiento"] = df["fecha_de_nacimiento"].dt.strftime('%d-%m-%Y')       
     fechastest=df["fecha_de_nacimiento"].isna()
+    
     if fechastest.any():
         print("fechas invalidas")
         print(df[fechastest])
-
-
+    else:
+        print("fechas correctas")
+    #transformamos la fecha a date
+    df["fecha_de_nacimiento"] = pd.to_datetime(df["fecha_de_nacimiento"], errors='coerce')
     data = df.to_dict(orient="records")
     print("after: ",type(df.loc[0,"fecha_de_nacimiento"]))
     
@@ -98,7 +112,7 @@ if not columnas_validadas:
             #fechasValidas.append(index)       
                    
 
-            
+             """
                     
                     
 

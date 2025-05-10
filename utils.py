@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+import math
 import os
 import re
 from tkinter import filedialog
@@ -55,3 +57,17 @@ def cargar_excel():
         filetypes=[("Excel files", "*.xlsx *.xls")]
     )
     return doc
+
+def convertir_fecha(valor):
+    if isinstance(valor, datetime):
+        return valor
+    elif isinstance(valor, (int, float)) and not math.isnan(valor):
+        # Convertir desde fecha Excel
+        return datetime(1899, 12, 30) + timedelta(days=int(valor))
+    elif isinstance(valor, str):
+        try:
+            # Intentar convertir desde string "dd/mm/yyyy"
+            return datetime.strptime(valor.strip(), "%d/%m/%Y")
+        except ValueError:
+            return None
+    return None
