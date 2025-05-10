@@ -5,45 +5,53 @@ from tkinter import Tk, filedialog
 from docx import Document
 
 # Creamos las carpetas necesarias / root -> word y pdf
-utils.mkdirFolders(config.CARPETA_BASE)
+#utils.mkdirFolders(config.CARPETA_BASE)
 
 # Oculta la ventana principal de Tkinter
 root = Tk()
 root.withdraw()
 
 # Selección de archivo
-archivo_seleccionado = filedialog.askopenfilename(
-    title="Selecciona un archivo Excel",
-    filetypes=[("Excel files", "*.xlsx *.xls")]
-)
+#archivo_excel = utils.cargar_excel()
+archivo_excel = "Seguimiento Fundación Reconocer (1) (1).xlsx"
+columnas_validadas = False
 
-# Información de iteraciones
-errores = {
-"fecha_nacimiento" : [],
-"rut" : [],
-"edad" : [],
-"caso" : [],
-"id" : [],
-"nombre": []
-}
-
-paciente = {
-"nombre": "",
-"rut":"",
-"fecha_nacimiento":"",
-"edad":0,
-"id": 0,
-"desdentado":""
-}
-
-fechasValidas = []
+if archivo_excel :
+    df = pd.read_excel(archivo_excel, header=1)
+    #validamos las cabeceras del Excel, para ver que tenga los nombres correctos.
+    try:
+        df.columns = df.columns.str.strip().str.lower().str.replace(r'\s+', '_', regex=True)
+    except Exception as e:
+        print("Error al transformar columnas ", e)
+    validacion_columnas = [col for col in df.columns if col not in config.COLUMNAS_VALIDAS]
+    if validacion_columnas:
+        print("columna erronea: ",validacion_columnas)
+    else:
+        print("Columnas validas!")
+        columnas_validadas = True
 
 
 
-if archivo_seleccionado:
-    df = pd.read_excel(archivo_seleccionado, header=1)
-    df.iloc[:, 4] = pd.to_datetime(df.iloc[:, 4], errors='coerce')  # Columna fecha nacimiento
+if columnas_validadas:
+    print("before: ",type(df.loc[0,"fecha_de_nacimiento"]))
+    df["fecha_de_nacimiento"] = pd.to_datetime(df["fecha_de_nacimiento"], errors='coerce')
+    #df["fecha_de_nacimiento"] = df["fecha_de_nacimiento"].dt.strftime('%d-%m-%Y')       
+    fechastest=df["fecha_de_nacimiento"].isna()
+    if fechastest.any():
+        print("fechas invalidas")
+        print(df[fechastest])
 
+
+    data = df.to_dict(orient="records")
+    print("after: ",type(df.loc[0,"fecha_de_nacimiento"]))
+    
+    for paciente in data:
+        print("test data: ",paciente["fecha_de_nacimiento"])
+
+
+if not columnas_validadas:
+    df.loc[:,"fecha_de_nacimiento"] = pd.to_datetime(df.loc[:, "fecha_de_nacimiento"], errors='coerce')  # Columna fecha nacimiento
+   
     for index, row in df.iterrows():
         if pd.notna(df.iloc[index, 0]):  # Validar que haya número de paciente
             #Fecha nacimiento paciente
@@ -85,11 +93,12 @@ if archivo_seleccionado:
                 
             except Exception as e:
                 errores["desdentado"].append({"fila":index,"error":str(e),"tipo": type(e).__name__}) 
-                continue        
+                continue 
+            print(f"Paciente: {paciente['nombre']}, Rut: {paciente['rut']}, Fecha de Nacimiento: {paciente['fecha_nacimiento']}, Edad: {str(paciente['edad'])}, ID: {str(paciente['id'])}")
+            #fechasValidas.append(index)       
                    
 
-            print(f"Paciente: {paciente['nombre']}, Rut: {paciente['rut']}, Fecha de Nacimiento: {paciente['fecha_nacimiento']}, Edad: {str(paciente['edad'])}, ID: {str(paciente['id'])}")
-            fechasValidas.append(index)
+            
                     
                     
 

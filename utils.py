@@ -1,5 +1,6 @@
 import os
 import re
+from tkinter import filedialog
 
 def mkdirFolders (path): 
     count = 1
@@ -18,50 +19,39 @@ def mkdirFolders (path):
 def limpiar_nombre_archivo(nombre):
     return re.sub(r'[\/:*?"<>|]', '', nombre)
 
-def docx_replace_regex(doc_obj, regex , replace):
-
-    for p in doc_obj.paragraphs:
+          
+def reemplazar_texto(doc,regex,reemplazo):
+    for p in doc.paragraphs:
         if regex.search(p.text):
-            inline = p.runs
-            # Loop added to work with runs (strings with same style)
-            for i in range(len(inline)):
-                if regex.search(inline[i].text):
-                    text = regex.sub(replace, inline[i].text)
-                    inline[i].text = text
+            runs =p.runs
+            for i in range(len(runs)):
+                if regex.search(runs[i].text):
+                    try:
+                        runs[i].text = regex.sub(reemplazo, runs[i].text)
+                    except Exception as e:
+                        print(e)
 
-    for table in doc_obj.tables:
+    for table in doc.tables:
         for row in table.rows:
             for cell in row.cells:
-                docx_replace_regex(cell, regex , replace)
+                reemplazar_texto(doc,regex,reemplazo)
 
-
-
-
-def docx_replace_multiple_regex(doc_obj, replacements):
-    # Compila todos los regex
-    compiled_replacements = {re.compile(k): v for k, v in replacements.items()}
-
-    def replace_in_paragraphs(paragraphs):
-        for p in paragraphs:
-            for regex, replace in compiled_replacements.items():
-                if regex.search(p.text):
-                    inline = p.runs
-                    for i in range(len(inline)):
-                        if regex.search(inline[i].text):
-                            inline[i].text = regex.sub(replace, inline[i].text)
-
-    def replace_in_tables(tables):
-        for table in tables:
-            for row in table.rows:
-                for cell in row.cells:
-                    replace_in_paragraphs(cell.paragraphs)
-
-    replace_in_paragraphs(doc_obj.paragraphs)
-    replace_in_tables(doc_obj.tables)
-
+#revisar párrafos y runs
+def revisar_text_doc(doc):
+    for p in doc.paragraphs:
+        print("Párrafo:", p.text)
+        for r in p.runs:
+            print("   Run:", r.text)
 
 def rut_formateado (data):
     rut_sin_dv = data[:-2]
     dv = data[-1]
     rut = "{:,}".format(int(rut_sin_dv)).replace(",", ".") + "-" + dv
     return rut.upper() 
+
+def cargar_excel():
+    doc = filedialog.askopenfilename(
+        title="Selecciona un archivo Excel",
+        filetypes=[("Excel files", "*.xlsx *.xls")]
+    )
+    return doc
