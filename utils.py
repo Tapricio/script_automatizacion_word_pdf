@@ -19,7 +19,8 @@ def mkdirFolders (path):
 #def desdentado():
 
 def limpiar_nombre_archivo(nombre):
-    return re.sub(r'[\/:*?"<>|]', '', nombre)
+    ret = re.sub(r'[\/:*?"<>|]', '', nombre) 
+    return ret.strip() 
 
           
 def reemplazar_texto(doc,regex,reemplazo):
@@ -46,10 +47,13 @@ def revisar_text_doc(doc):
             print("   Run:", r.text)
 
 def rut_formateado (data):
+    data.strip().replace(" ","")
     rut_sin_dv = data[:-2]
     dv = data[-1]
     rut = "{:,}".format(int(rut_sin_dv)).replace(",", ".") + "-" + dv
     return rut.upper() 
+
+
 
 def cargar_excel():
     doc = filedialog.askopenfilename(
@@ -60,14 +64,28 @@ def cargar_excel():
 
 def convertir_fecha(valor):
     if isinstance(valor, datetime):
-        return valor
+        #return valor
+        #return datetime.strftime(valor,"%d/%m/%Y")
+        return valor.strftime("%d-%m-%Y")
     elif isinstance(valor, (int, float)) and not math.isnan(valor):
         # Convertir desde fecha Excel
-        return datetime(1899, 12, 30) + timedelta(days=int(valor))
+        fecha =datetime(1899, 12, 30) + timedelta(days=int(valor))
+        return fecha.strftime("%d-%m-%Y")
     elif isinstance(valor, str):
-        try:
-            # Intentar convertir desde string "dd/mm/yyyy"
-            return datetime.strptime(valor.strip(), "%d/%m/%Y")
-        except ValueError:
-            return None
-    return None
+        for fmt in ("%d/%m/%Y", "%Y-%m-%d"):
+            try:
+                return datetime.strptime(valor.strip(), fmt).strftime("%d-%m-%Y")
+            except ValueError:
+                continue
+        
+    raise ValueError(f"Formato de fecha inválido: {valor}")
+
+def errores_exception(atributo,errores,exception,index,data=None):
+    errores.setdefault(atributo,[]).append({
+        "fila_excel": index + 3,
+        "error": str(exception),
+        "data": data
+    })
+
+
+    #"fecha_de_nacimiento",errores,e,i

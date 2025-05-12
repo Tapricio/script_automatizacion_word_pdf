@@ -16,15 +16,16 @@ root.withdraw()
 #archivo_excel = utils.cargar_excel()
 archivo_excel = "Seguimiento Fundación Reconocer (1) (1).xlsx"
 columnas_validadas = False
+errores = config.ERRORES
 
 if archivo_excel :
     df = pd.read_excel(archivo_excel, header=1)
     #validamos las cabeceras del Excel, para ver que tenga los nombres correctos.
     try:
         df.columns = df.columns.str.strip().str.lower().str.replace(r'\s+', '_', regex=True)
+        validacion_columnas = [col for col in df.columns if col not in config.PACIENTE]
     except Exception as e:
         print("Error al transformar columnas ", e)
-    validacion_columnas = [col for col in df.columns if col not in config.COLUMNAS_VALIDAS]
     if validacion_columnas:
         print("columna erronea: ",validacion_columnas)
     else:
@@ -32,39 +33,63 @@ if archivo_excel :
         columnas_validadas = True
 
 
-correctas = []
-incorrectas = []
 if columnas_validadas:
     #print("before: ",type(df.loc[0,"fecha_de_nacimiento"]))
     data = df.to_dict(orient="records")
-    for paciente in data:
-        if pd.notna(utils.convertir_fecha(paciente["fecha_de_nacimiento"])):
-           correctas.append(paciente["fecha_de_nacimiento"])
+    paciente = config.PACIENTE
+    data.pop() #eliminamos fila de total, que es la última
+    for i,row in enumerate(data):
+        """ #asignamos caso
+        try:
+            paciente["caso"] = row["caso"].strip().lower().replace(" ","")
+        except Exception as e:
+            utils. errores_exception("caso",errores,e,i,row)
+            continue
+
+        #asignamos nombre de paciente
+        try:
+            paciente["nombre_paciente"] = row["nombre_paciente"].strip()
+        except Exception as e:
+            utils. errores_exception("nombre_paciente",errores,e,i,row)
+            continue
+        
+        #asignamos rut
+        try:
+            paciente["rut"] = utils.rut_formateado(row["rut"])
+        except Exception as e:
+            utils. errores_exception("rut",errores,e,i,data)
+            continue
+ """
+        #asignamos fecha de nacimiento
+        try:
+            paciente["fecha_de_nacimiento"] = utils.convertir_fecha(row["fecha_de_nacimiento"])
+        except Exception as e:
+            utils. errores_exception("fecha_de_nacimiento",errores,e,i)
+            continue
+        print(paciente["fecha_de_nacimiento"], row["nombre_paciente"])
+        #paciente["nombre_paciente"] = row["nombre_paciente"].strip()
+        """ "n°_paciente": 0,
+            "caso": "",
+            "nombre_paciente": "",
+            "rut":"",
+            "fecha_de_nacimiento":"",
+            "edad":0,
+            "id": 0, """
+        
+        """ paciente["fecha_de_nacimiento"]=utils.convertir_fecha(paciente["fecha_de_nacimiento"])
+        if pd.notna:
+           correctas.append([paciente["nombre_paciente"], paciente["fecha_de_nacimiento"]])
         else:
-            print("fecha incorrecta: ",utils.convertir_fecha(paciente["fecha_de_nacimiento"]))
-            incorrectas.append(paciente["fecha_de_nacimiento"])
+            incorrectas.append([paciente["nombre_paciente"],paciente["fecha_de_nacimiento"]])
+            continue """
+       # print(paciente["fecha_de_nacimiento"], paciente["rut"])
+    #print(errores["rut"])
+    print(errores["fecha_de_nacimiento"])
 
-
-
-"""  #df["fecha_de_nacimiento"] = df["fecha_de_nacimiento"].dt.strftime('%d-%m-%Y')       
-    fechastest=df["fecha_de_nacimiento"].isna()
+"""  
     
-    if fechastest.any():
-        print("fechas invalidas")
-        print(df[fechastest])
-    else:
-        print("fechas correctas")
-    #transformamos la fecha a date
-    df["fecha_de_nacimiento"] = pd.to_datetime(df["fecha_de_nacimiento"], errors='coerce')
-    data = df.to_dict(orient="records")
-    print("after: ",type(df.loc[0,"fecha_de_nacimiento"]))
-    
-    for paciente in data:
-        print("test data: ",paciente["fecha_de_nacimiento"])
-
 
 if not columnas_validadas:
-    df.loc[:,"fecha_de_nacimiento"] = pd.to_datetime(df.loc[:, "fecha_de_nacimiento"], errors='coerce')  # Columna fecha nacimiento
    
     for index, row in df.iterrows():
         if pd.notna(df.iloc[index, 0]):  # Validar que haya número de paciente
