@@ -15,7 +15,7 @@ def mkdirFolders (path):
 
     os.makedirs(pdf_folder, exist_ok=True)
     os.makedirs(word_folder, exist_ok=True)
-
+    return pdf_folder, word_folder
 #def desdentado():
 
 def limpiar_nombre_archivo(nombre):
@@ -37,8 +37,8 @@ def reemplazar_texto(doc,regex,reemplazo):
     for table in doc.tables:
         for row in table.rows:
             for cell in row.cells:
-                reemplazar_texto(doc,regex,reemplazo)
-
+                reemplazar_texto(cell,regex,reemplazo)
+    
 #revisar párrafos y runs
 def revisar_text_doc(doc):
     for p in doc.paragraphs:
@@ -86,6 +86,20 @@ def errores_exception(atributo,errores,exception,index,data=None):
         "error": str(exception),
         "data": data
     })
-
-
+def validar_edad(edad):
+    if edad<18 or isinstance(edad,int) or math.isnan(edad):
+        raise ValueError("Edad incorrecta")
+    return str(int(edad))
     #"fecha_de_nacimiento",errores,e,i
+
+def fecha_actual():
+    hoy = datetime.today().strftime('%d-%m-%Y')
+    return hoy
+
+def id_template(id):
+    try:
+        idTemporal=int(id)+1
+        return str(idTemporal)
+    except ValueError:
+        raise ValueError("Error id template")
+    

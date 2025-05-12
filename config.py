@@ -1,15 +1,23 @@
 from datetime import datetime
 import os
+import re
 
 URL_BASE_PROYECTO = os.path.dirname(os.path.abspath(__file__)) #carpeta donde esta el script
-CARPETA_BASE = "test_folder"
-HOY_D_M_Y = datetime.today().strftime('%d-%m-%Y')
-DESDENTADO_SI = os.path.join(URL_BASE_PROYECTO,"templates\plantilla0.docx")
-DESDENTADO_NO = os.path.join(URL_BASE_PROYECTO,"templates\plantilla9990.docx")
+CARPETA_BASE = "output"
+DESDENTADO_SI = os.path.join(URL_BASE_PROYECTO,"templates\plantillaSinCosto.docx")
+DESDENTADO_NO = os.path.join(URL_BASE_PROYECTO,"templates\plantillaConCosto.docx")
 VALIDACION_DESDENTADO = "desdentado"
-
 ERRORES =  {}
+PALABRAS_WORD_MODIFICAR = {
+       "Nombre_paciente_template" : re.compile(r"NombreTemplate"),
+       "fecha_emicion_template" : re.compile(r"FechaDeEmicionTemplate"),
+       "rut_template" : re.compile(r"RutTemplate"),
+       "edad_template" : re.compile(r"EdadTemplate"),
+       "fecha_nacimiento_template" : re.compile(r"FechaDeNacimientoTemplate"),
+       "id_template" : re.compile(r"IdTemplate"),
+}
 PACIENTE = {
+'id_template':0,
 'n°_paciente':"",
 'caso':"",
 'nombre_paciente':"",
