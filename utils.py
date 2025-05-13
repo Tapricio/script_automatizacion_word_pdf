@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import math
 import os
 import re
-from tkinter import filedialog
+from tkinter import Tk, filedialog
 
 def mkdirFolders (path): 
     count = 1
@@ -43,7 +43,7 @@ def reemplazar_texto(doc,regex,reemplazo):
 def revisar_text_doc(doc):
     for p in doc.paragraphs:
         print("Párrafo:", p.text)
-        for r in p.runs:
+        for r in p.runs: 
             print("   Run:", r.text)
 
 def rut_formateado (data):
