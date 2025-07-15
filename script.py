@@ -82,12 +82,9 @@ def docx_replace_multiple_regex(doc_obj, replacements):
     replace_in_paragraphs(doc_obj.paragraphs)
     replace_in_tables(doc_obj.tables)
 
+ 
 
 datosErroneos=[]
-nombresErroneos=[]
-rutErroneos=[]
-edadErroneas=[]
-fechasInvalidas=[]
 if file_path:
     df = pd.read_excel(file_path, header=1)
     df.iloc[:, 4] = pd.to_datetime(df.iloc[:, 4], errors='coerce')  # Columna fecha nacimiento
@@ -102,7 +99,7 @@ if file_path:
                     nombre = re.sub(r'\s+', ' ', df.iloc[index, 1].strip())
                     #print(nombre)
                 except Exception:
-                    nombresErroneos.append(index)
+                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]}")
                     continue
                 
                 #rut
@@ -114,7 +111,7 @@ if file_path:
                     rut = rut.upper()
                     #print(f"{rut} - {df.iloc[index, 2]}")
                 except Exception:
-                    rutErroneos.append(index)
+                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]}")
                     continue
 
                 #edad
@@ -125,7 +122,7 @@ if file_path:
                     edad = int(float(edad_raw))
                     #print(edad)
                 except Exception:
-                    edadErroneas.append(index)
+                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]}")
                     continue
 
                 #fecha de nacimiento
@@ -133,12 +130,28 @@ if file_path:
                     fechaFormateada = fechaNacimiento.strftime('%d-%m-%Y')
                     #print(fechaFormateada)
                 except Exception:
-                    fechasInvalidas.append(index)
+                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]}")
                     continue
 
+                #precio
+                try:
+                    
+
+                    precio = df.iloc[index, 25]
+                    if pd.isna(precio):
+                        precio=0
+                        precioString= f"sin costo."
+                    else:
+                        precio = int(float(precio))
+                        precioFormateado = format(precio, ',').replace(',', '.')
+                        precioString= f"a un costo de ${precioFormateado}."                    
+                    #print(precio)
+                except Exception:
+                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]}")
+                    continue
                 
 
-                print(f"Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} ID: {id} ")
+                print(f"Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} ID: {id} Precio: {precio}")
                 id+=1
 
 
@@ -149,17 +162,23 @@ if file_path:
                 docx_replace_regex(doc, re.compile(r"EdadTemplate"), str(edad))
                 docx_replace_regex(doc, re.compile(r"FechaDeNacimientoTemplate"), fechaFormateada)
                 docx_replace_regex(doc, re.compile(r"IdTemplate"),str(id))
+                docx_replace_regex(doc, re.compile(r"PrecioTemplate"),str(precioString))
 
                 # guardar en carpeta "word"
                 nombre_archivo_seguro = limpiar_nombre_archivo(nombre)
                 word_folder=".\output\cartas reconocer\word"
                 ruta_guardado = os.path.join(word_folder, f"{nombre_archivo_seguro} {rut}.docx")
-                doc.save(ruta_guardado)
+                doc.save(ruta_guardado)            
+
             else:
-                datosErroneos.append(f"Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]}")
+                datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]}")
+
+if datosErroneos:
+    print("------------------------")
+    print("ERROR:")
+    for error in datosErroneos:
+        print(error)
+    print("------------------------")
 
 
-
-print("ERROR: ", datosErroneos)
-            
 
