@@ -5,6 +5,7 @@ from datetime import datetime
 from tkinter import Tk, filedialog
 from docx import Document
 import win32com.client
+import comtypes.client
 
 
 # Obtener la fecha actual en formato DD-MM-YYYY
@@ -36,7 +37,7 @@ edadErroneas = []
 casosInvalidos = []
 idInvalidos = []
 
-id = 10001
+id = 10213
 
 def limpiar_nombre_archivo(nombre):
     return re.sub(r'[\\:*?"<>|]', '', nombre)
@@ -85,10 +86,10 @@ def docx_replace_multiple_regex(doc_obj, replacements):
  
 
 datosErroneos=[]
+
 if file_path:
     df = pd.read_excel(file_path, header=1)
     df.iloc[:, 4] = pd.to_datetime(df.iloc[:, 4], errors='coerce')  # Columna fecha nacimiento
-    count=0
     for index, row in df.iterrows():
         if pd.notna(df.iloc[index, 2]):  # Validar que hay paciente
             
@@ -99,7 +100,7 @@ if file_path:
                     nombre = re.sub(r'\s+', ' ', df.iloc[index, 1].strip())
                     #print(nombre)
                 except Exception:
-                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]}")
+                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
                     continue
                 
                 #rut
@@ -111,7 +112,7 @@ if file_path:
                     rut = rut.upper()
                     #print(f"{rut} - {df.iloc[index, 2]}")
                 except Exception:
-                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]}")
+                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
                     continue
 
                 #edad
@@ -122,7 +123,7 @@ if file_path:
                     edad = int(float(edad_raw))
                     #print(edad)
                 except Exception:
-                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]}")
+                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
                     continue
 
                 #fecha de nacimiento
@@ -130,27 +131,27 @@ if file_path:
                     fechaFormateada = fechaNacimiento.strftime('%d-%m-%Y')
                     #print(fechaFormateada)
                 except Exception:
-                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]}")
+                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
                     continue
 
                 #precio
                 try:
                     
 
-                    precio = df.iloc[index, 25]
-                    if pd.isna(precio):
-                        precio=0
-                        precioString= f"sin costo."
-                    else:
+                    try:
+                        precio = df.iloc[index, 25]
                         precio = int(float(precio))
-                        precioFormateado = format(precio, ',').replace(',', '.')
-                        precioString= f"a un costo de ${precioFormateado}."                    
+                        precio = format(precio, ',').replace(',', '.')
+                        precioString= f"${precio}" 
+                    except Exception:
+                        datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
+                        continue
+                                           
                     #print(precio)
                 except Exception:
-                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]}")
+                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
                     continue
                 
-
                 print(f"Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} ID: {id} Precio: {precio}")
                 id+=1
 
@@ -168,10 +169,13 @@ if file_path:
                 nombre_archivo_seguro = limpiar_nombre_archivo(nombre)
                 word_folder=".\output\cartas reconocer\word"
                 ruta_guardado = os.path.join(word_folder, f"{nombre_archivo_seguro} {rut}.docx")
-                doc.save(ruta_guardado)            
+                doc.save(ruta_guardado)     
+
+                
+       
 
             else:
-                datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]}")
+                datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
 
 if datosErroneos:
     print("------------------------")
