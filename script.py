@@ -32,14 +32,14 @@ file_path = filedialog.askopenfilename(
 fechasInvalidas = []
 fechasValidas = []
 rutInvalidos = []
-edadInvalidas = []
+edadErroneas = []
 casosInvalidos = []
 idInvalidos = []
 
-val = 0
+id = 10001
 
 def limpiar_nombre_archivo(nombre):
-    return re.sub(r'[\/:*?"<>|]', '', nombre)
+    return re.sub(r'[\\:*?"<>|]', '', nombre)
 
 def docx_replace_regex(doc_obj, regex , replace):
 
@@ -83,12 +83,83 @@ def docx_replace_multiple_regex(doc_obj, replacements):
     replace_in_tables(doc_obj.tables)
 
 
-
+datosErroneos=[]
+nombresErroneos=[]
+rutErroneos=[]
+edadErroneas=[]
+fechasInvalidas=[]
 if file_path:
     df = pd.read_excel(file_path, header=1)
     df.iloc[:, 4] = pd.to_datetime(df.iloc[:, 4], errors='coerce')  # Columna fecha nacimiento
     count=0
     for index, row in df.iterrows():
         if pd.notna(df.iloc[index, 2]):  # Validar que hay paciente
-            print(df.iloc[index, 2])
+            
+            fechaNacimiento = df.iloc[index, 4]
+            if pd.notna(fechaNacimiento):
+                #nombre
+                try:
+                    nombre = re.sub(r'\s+', ' ', df.iloc[index, 1].strip())
+                    #print(nombre)
+                except Exception:
+                    nombresErroneos.append(index)
+                    continue
+                
+                #rut
+                try:
+                    rut_response = df.iloc[index, 2].replace(" ", "").replace(".", "")
+                    rut_base = rut_response[:-2]
+                    verificador = rut_response[-1]
+                    rut = "{:,}".format(int(rut_base)).replace(",", ".") + "-" + verificador
+                    rut = rut.upper()
+                    #print(f"{rut} - {df.iloc[index, 2]}")
+                except Exception:
+                    rutErroneos.append(index)
+                    continue
+
+                #edad
+                try:
+                    edad_raw = df.iloc[index, 5]
+                    if isinstance(edad_raw, str):
+                        edad_raw = edad_raw.strip()
+                    edad = int(float(edad_raw))
+                    #print(edad)
+                except Exception:
+                    edadErroneas.append(index)
+                    continue
+
+                #fecha de nacimiento
+                try:
+                    fechaFormateada = fechaNacimiento.strftime('%d-%m-%Y')
+                    #print(fechaFormateada)
+                except Exception:
+                    fechasInvalidas.append(index)
+                    continue
+
+                
+
+                print(f"Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} ID: {id} ")
+                id+=1
+
+
+                #modificamos el word
+                doc = Document("Carta Tratamiento dental Reconocer.docx")
+                docx_replace_regex(doc, re.compile(r"NombreTemplate"), nombre)
+                docx_replace_regex(doc, re.compile(r"RutTemplate"), rut)
+                docx_replace_regex(doc, re.compile(r"EdadTemplate"), str(edad))
+                docx_replace_regex(doc, re.compile(r"FechaDeNacimientoTemplate"), fechaFormateada)
+                docx_replace_regex(doc, re.compile(r"IdTemplate"),str(id))
+
+                # guardar en carpeta "word"
+                nombre_archivo_seguro = limpiar_nombre_archivo(nombre)
+                word_folder=".\output\cartas reconocer\word"
+                ruta_guardado = os.path.join(word_folder, f"{nombre_archivo_seguro} {rut}.docx")
+                doc.save(ruta_guardado)
+            else:
+                datosErroneos.append(f"Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]}")
+
+
+
+print("ERROR: ", datosErroneos)
+            
 
