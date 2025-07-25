@@ -10,7 +10,7 @@ import comtypes.client
 
 # Obtener la fecha actual en formato DD-MM-YYYY
 fecha_hoy = datetime.today().strftime('%d-%m-%Y')
-idTemplate = 10001
+idTemplate = 10318
 
 # Crear las carpetas necesarias sin sobrescribir
 #base_folder_name = rf"G:\Unidades compartidas\Salud\Cartas devolución jubilados\{fecha_hoy} carta devolución jubilados"
@@ -89,93 +89,51 @@ datosErroneos=[]
 
 if file_path:
     df = pd.read_excel(file_path, header=1)
-    df.iloc[:, 4] = pd.to_datetime(df.iloc[:, 4], errors='coerce')  # Columna fecha nacimiento
     for index, row in df.iterrows():
         if pd.notna(df.iloc[index, 2]):  # Validar que hay paciente
             
             fechaNacimiento = df.iloc[index, 4]
-            if pd.notna(fechaNacimiento):
                 #nombre
-                try:
-                    nombre = re.sub(r'\s+', ' ', df.iloc[index, 1].strip())
-                    #print(nombre)
-                except Exception:
-                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
-                    continue
-                
-                #rut
-                try:
-                    rut_response = df.iloc[index, 2].replace(" ", "").replace(".", "")
-                    rut_base = rut_response[:-2]
-                    verificador = rut_response[-1]
-                    rut = "{:,}".format(int(rut_base)).replace(",", ".") + "-" + verificador
-                    rut = rut.upper()
-                    #print(f"{rut} - {df.iloc[index, 2]}")
-                except Exception:
-                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
-                    continue
+            try:
+                nombre = re.sub(r'\s+', ' ', df.iloc[index, 1].strip())
+                #print(nombre)
+            except Exception:
+                datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
+                continue
+            
+            #rut
+            try:
+                rut_response = df.iloc[index, 2].replace(" ", "").replace(".", "")
+                rut_base = rut_response[:-2]
+                verificador = rut_response[-1]
+                rut = "{:,}".format(int(rut_base)).replace(",", ".") + "-" + verificador
+                rut = rut.upper()
+                #print(f"{rut} - {df.iloc[index, 2]}")
+            except Exception:
+                datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
+                continue
 
-                #edad
-                try:
-                    edad_raw = df.iloc[index, 5]
-                    if isinstance(edad_raw, str):
-                        edad_raw = edad_raw.strip()
-                    edad = int(float(edad_raw))
-                    #print(edad)
-                except Exception:
-                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
-                    continue
-
-                #fecha de nacimiento
-                try:
-                    fechaFormateada = fechaNacimiento.strftime('%d-%m-%Y')
-                    #print(fechaFormateada)
-                except Exception:
-                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
-                    continue
-
-                #precio
-                try:
-                    
-
-                    try:
-                        precio = df.iloc[index, 25]
-                        precio = int(float(precio))
-                        precio = format(precio, ',').replace(',', '.')
-                        precioString= f"${precio}" 
-                    except Exception:
-                        datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
-                        continue
-                                           
-                    #print(precio)
-                except Exception:
-                    datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
-                    continue
-                
-                print(f"Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} ID: {id} Precio: {precio}")
-                id+=1
+            
+            
+            print(f"Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} ID: {id}")
+            id+=1
 
 
-                #modificamos el word
-                doc = Document("Carta Tratamiento dental Reconocer.docx")
-                docx_replace_regex(doc, re.compile(r"NombreTemplate"), nombre)
-                docx_replace_regex(doc, re.compile(r"RutTemplate"), rut)
-                docx_replace_regex(doc, re.compile(r"EdadTemplate"), str(edad))
-                docx_replace_regex(doc, re.compile(r"FechaDeNacimientoTemplate"), fechaFormateada)
-                docx_replace_regex(doc, re.compile(r"IdTemplate"),str(id))
-                docx_replace_regex(doc, re.compile(r"PrecioTemplate"),str(precioString))
+            #modificamos el word
+            doc = Document("Carta Tratamiento dental Reconocer2.docx")
+            docx_replace_regex(doc, re.compile(r"NombreTemplate"), nombre)
+            docx_replace_regex(doc, re.compile(r"RutTemplate"), rut)
+            docx_replace_regex(doc, re.compile(r"IdTemplate"),str(id))
 
-                # guardar en carpeta "word"
-                nombre_archivo_seguro = limpiar_nombre_archivo(nombre)
-                word_folder=".\output\cartas reconocer\word"
-                ruta_guardado = os.path.join(word_folder, f"{nombre_archivo_seguro} {rut}.docx")
-                doc.save(ruta_guardado)     
+            # guardar en carpeta "word"
+            nombre_archivo_seguro = limpiar_nombre_archivo(nombre)
+            word_folder=".\output\cartas reconocer\word"
+            ruta_guardado = os.path.join(word_folder, f"{nombre_archivo_seguro} {rut}.docx")
+            doc.save(ruta_guardado)     
 
                 
        
 
-            else:
-                datosErroneos.append(f"index: {index}, data - Nombre: {df.iloc[index, 1]} Rut: {df.iloc[index, 2]} Edad: {df.iloc[index,5]} Fecha de nacimiento: {df.iloc[index, 4]} Precio: {df.iloc[index,25]}")
 
 if datosErroneos:
     print("------------------------")
