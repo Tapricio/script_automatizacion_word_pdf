@@ -2,8 +2,8 @@ import os
 import win32com.client  # Asegúrate de tener 'pywin32' instalado
 
 # Rutas de entrada y salida
-word_folder = r"C:\PatricioTorres\script_automatizacion_word_pdf\07-05-2025 carta devolución jubilados (1)\07-05-2025 word"
-pdf_folder = r"C:\PatricioTorres\script_automatizacion_word_pdf\07-05-2025 carta devolución jubilados (1)\07-05-2025 pdf"
+word_folder = r"G:\Unidades compartidas\Informática\teccia\word"
+pdf_folder = r"G:\Unidades compartidas\Informática\teccia\pdf"
 
 # Crear objeto de Word
 word = win32com.client.Dispatch("Word.Application")
