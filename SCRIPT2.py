@@ -9,7 +9,7 @@ import comtypes.client
 
 # Obtener la fecha actual en formato DD-MM-YYYY
 fecha_hoy = datetime.today().strftime('%d-%m-%Y')
-idTemplate = 11232
+idTemplate = 11271
 
 # Carpeta base
 base_folder_name = rf".\output\cartas reconocer"
@@ -26,7 +26,7 @@ file_path = filedialog.askopenfilename(
 
 # Listas de errores
 datosErroneos = []
-id = 11223
+id = 11271
 
 # Función para limpiar nombres de archivo
 def limpiar_nombre_archivo(nombre):
@@ -74,24 +74,10 @@ if file_path:
             # Abrir plantilla Word
             doc = Document("CartaTemplate.docx")
 
-            # Reemplazos base
+            # Reemplazos base (sin ValorTemplate)
             docx_replace_regex(doc, re.compile(r"NombreTemplate"), nombre)
             docx_replace_regex(doc, re.compile(r"RutTemplate"), rut)
             docx_replace_regex(doc, re.compile(r"IdTemplate"), str(id))
-
-            # ValorTemplate (columna Z → índice 25, con formato de miles)
-            valor_crudo = df.iloc[index, 25]
-            if pd.notna(valor_crudo):
-                try:
-                    valor_numerico = float(valor_crudo)
-                    valor = f"{int(valor_numerico):,}".replace(",", ".")
-                except ValueError:
-                    valor = str(valor_crudo)
-            else:
-                valor = ""
-            docx_replace_regex(doc, re.compile(r"ValorTemplate"), valor)
-
-            # FechaEmisionTemplate (fecha actual)
             docx_replace_regex(doc, re.compile(r"FechaEmisionTemplate"), fecha_hoy)
 
             # Guardar Word
